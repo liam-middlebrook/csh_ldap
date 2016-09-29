@@ -58,11 +58,10 @@ class CSHMember:
         else:
             ldap_mod = ldap.MOD_REPLACE
 
-        mod = (ldap_mod, key, value)
+        mod = (ldap_mod, key, value.encode('ascii'))
 
         if self.__lib__.__batch_mods__:
             self.__lib__.enqueue_mod(self.__dn__, mod)
         else:
             mod_attrs = [mod]
-
-        self.__con__.modify_s(self.__dn__, mod_attrs)
+            self.__con__.modify_s(self.__dn__, mod_attrs)

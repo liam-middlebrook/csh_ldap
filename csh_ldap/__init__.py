@@ -27,7 +27,7 @@ class CSHLDAP:
         # mark for update
         if not dn in self.__pending_mod_dn__:
             self.__pending_mod_dn__.append(dn)
-            self.__mod_queue__[dn] = None
+            self.__mod_queue__[dn] = []
 
         self.__mod_queue__[dn].append(mod)
 
