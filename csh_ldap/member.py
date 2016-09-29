@@ -3,11 +3,12 @@ import ldap
 class CSHMember:
     __ldap_user_ou__ = "ou=Users,dc=csh,dc=rit,dc=edu"
 
-    def __init__(self, con, search_val):
-        self.__dict__['__con__'] = con
+    def __init__(self, lib, search_val):
+        self.__dict__['__lib__'] = lib
+        self.__dict__['__con__'] = lib.get_con()
         self.__dict__['__search_val__'] = search_val
 
-        self.__dict__['__dn__'] = con.search_s(
+        self.__dict__['__dn__'] = self.__con__.search_s(
                 self.__ldap_user_ou__,
                 ldap.SCOPE_SUBTREE,
                 "(entryUUID=%s)" % search_val,
@@ -57,6 +58,11 @@ class CSHMember:
         else:
             ldap_mod = ldap.MOD_REPLACE
 
-        mod_attrs = [(ldap_mod, key, value)]
+        mod = (ldap_mod, key, value)
+
+        if self.__lib__.__batch_mods__:
+            self.__lib__.enqueue_mod(self.__dn__, mod)
+        else:
+            mod_attrs = [mod]
 
         self.__con__.modify_s(self.__dn__, mod_attrs)
