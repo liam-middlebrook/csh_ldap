@@ -1,4 +1,7 @@
 # csh_ldap
+
+[![PyPI version](https://badge.fury.io/py/csh_ldap.svg)](https://badge.fury.io/py/csh_ldap)
+
 Python 3 ORM for CSH LDAP
 
 
