@@ -7,7 +7,6 @@ class CSHMember:
     def __init__(self, lib, search_val, uid):
         self.__dict__['__lib__'] = lib
         self.__dict__['__con__'] = lib.get_con()
-        self.__dict__['__search_val__'] = search_val
 
         if uid:
             self.__dict__['__dn__'] = self.__con__.search_s(
@@ -35,9 +34,9 @@ class CSHMember:
 
     def __getattr__(self, key, as_list=False):
         res = self.__con__.search_s(
-                self.__ldap_user_ou__,
-                ldap.SCOPE_SUBTREE,
-                "(entryUUID=%s)" % self.__search_val__,
+                self.__dn__,
+                ldap.SCOPE_BASE,
+                "(objectClass=*)",
                 [key])
 
         if as_list:
@@ -49,9 +48,9 @@ class CSHMember:
         ldap_mod = None
 
         exists = self.__con__.search_s(
-                self.__ldap_user_ou__,
-                ldap.SCOPE_SUBTREE,
-                "(entryUUID=%s)" % self.__search_val__,
+                self.__dn__,
+                ldap.SCOPE_BASE,
+                "(objectClass=*)",
                 [key])
 
         if value is None or value == "":
