@@ -4,16 +4,23 @@ import ldap
 class CSHMember:
     __ldap_user_ou__ = "ou=Users,dc=csh,dc=rit,dc=edu"
 
-    def __init__(self, lib, search_val):
+    def __init__(self, lib, search_val, uid):
         self.__dict__['__lib__'] = lib
         self.__dict__['__con__'] = lib.get_con()
         self.__dict__['__search_val__'] = search_val
 
-        self.__dict__['__dn__'] = self.__con__.search_s(
-                self.__ldap_user_ou__,
-                ldap.SCOPE_SUBTREE,
-                "(entryUUID=%s)" % search_val,
-                ['uid'])[0][0]
+        if uid:
+            self.__dict__['__dn__'] = self.__con__.search_s(
+                    self.__ldap_user_ou__,
+                    ldap.SCOPE_SUBTREE,
+                    "(uid=%s)" % search_val,
+                    ['entryUUID'])[0][0]
+        else:
+            self.__dict__['__dn__'] = self.__con__.search_s(
+                    self.__ldap_user_ou__,
+                    ldap.SCOPE_SUBTREE,
+                    "(entryUUID=%s)" % search_val,
+                    ['uid'])[0][0]
 
     def get(self, key):
         return self.__getattr__(key, as_list=True)
@@ -54,7 +61,10 @@ class CSHMember:
         else:
             ldap_mod = ldap.MOD_REPLACE
 
-        mod = (ldap_mod, key, value.encode('ascii'))
+        if value is None:
+            mod = (ldap_mod, key, None)
+        else:
+            mod = (ldap_mod, key, value.encode('ascii'))
 
         if self.__lib__.__batch_mods__:
             self.__lib__.enqueue_mod(self.__dn__, mod)

@@ -13,8 +13,8 @@ class CSHLDAP:
         self.__batch_mods__ = batch_mods
         pass
 
-    def get_member(self, val):
-        return CSHMember(self, val)
+    def get_member(self, val, uid=False):
+        return CSHMember(self, val, uid)
 
     def get_con(self):
         return self.__con__
