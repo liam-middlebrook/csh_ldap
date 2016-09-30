@@ -2,7 +2,7 @@ import ldap
 
 
 class CSHGroup:
-    __ldap_group_ou__ = "ou=Group,dc=csh,dc=rit,dc=edu"
+    __ldap_group_ou__ = "ou=Groups,dc=csh,dc=rit,dc=edu"
 
     def __init__(self, lib, search_val):
         self.__dict__['__lib__'] = lib
@@ -22,7 +22,7 @@ class CSHGroup:
                 ['member'])
 
         ret = []
-        for val in res[0][1][key]:
+        for val in res[0][1]['member']:
             try:
                 ret.append(val.decode('utf-8'))
             except UnicodeDecodeError:
@@ -38,15 +38,15 @@ class CSHGroup:
                 ldap.SCOPE_BASE,
                 "(member=%s)" % dn,
                 ['entryUUID'])
-        return len(res[0][1]) > 0
+        return len(res) > 0
 
     def add_member(self, dn):
         ldap_mod = None
 
-        if check_member(dn):
-            pass
+        if self.check_member(dn):
+            return
 
-        mod = (ldap.MOD_ADD, 'member', value.encode('ascii'))
+        mod = (ldap.MOD_ADD, 'member', dn.encode('ascii'))
 
         if self.__lib__.__batch_mods__:
             self.__lib__.enqueue_mod(self.__dn__, mod)
@@ -57,10 +57,10 @@ class CSHGroup:
     def del_member(self, dn):
         ldap_mod = None
 
-        if not check_member(dn):
-            pass
+        if not self.check_member(dn):
+            return
 
-        mod = (ldap.MOD_DELETE, 'member', value.encode('ascii'))
+        mod = (ldap.MOD_DELETE, 'member', dn.encode('ascii'))
 
         if self.__lib__.__batch_mods__:
             self.__lib__.enqueue_mod(self.__dn__, mod)

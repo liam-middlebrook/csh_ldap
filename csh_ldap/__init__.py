@@ -33,6 +33,15 @@ class CSHLDAP:
 
     def flush_mod(self):
         for dn in self.__pending_mod_dn__:
-            self.__con__.modify_s(dn, self.__mod_queue__[dn])
+            try:
+                self.__con__.modify_s(dn, self.__mod_queue__[dn])
+            except ldap.TYPE_OR_VALUE_EXISTS:
+                print("Error! Conflicting Batch Modification: %s"
+                      % str(self.__mod_queue__[dn]))
+                continue
+            except ldap.NO_SUCH_ATTRIBUTE:
+                print("Error! Conflicting Batch Modification: %s"
+                      % str(self.__mod_queue__[dn]))
+                continue
             self.__mod_queue__[dn] = None
         self.__pending_mod_dn__ = []
