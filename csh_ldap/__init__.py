@@ -1,5 +1,6 @@
 import ldap
 from csh_ldap.member import CSHMember
+from csh_ldap.group import CSHGroup
 
 
 class CSHLDAP:
@@ -15,6 +16,9 @@ class CSHLDAP:
 
     def get_member(self, val, uid=False):
         return CSHMember(self, val, uid)
+
+    def get_group(self, val):
+        return CSHGroup(self, val)
 
     def get_con(self):
         return self.__con__
