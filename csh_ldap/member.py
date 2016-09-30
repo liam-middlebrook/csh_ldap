@@ -1,5 +1,6 @@
 import ldap
 
+
 class CSHMember:
     __ldap_user_ou__ = "ou=Users,dc=csh,dc=rit,dc=edu"
 
@@ -14,20 +15,16 @@ class CSHMember:
                 "(entryUUID=%s)" % search_val,
                 ['uid'])[0][0]
 
-
     def get(self, key):
         return self.__getattr__(key, as_list=True)
 
-
     def groups(self):
         return self.get('memberOf')
-
 
     def in_group(self, group):
         if 'cn' not in group:
             group = "cn=" + group + ",ou=Groups,dc=csh,dc=rit,dc=edu"
         return group in self.groups()
-
 
     def __getattr__(self, key, as_list=False):
         res = self.__con__.search_s(
@@ -40,7 +37,6 @@ class CSHMember:
             return [v.decode('utf-8') for v in res[0][1][key]]
         else:
             return res[0][1][key][0].decode('utf-8')
-
 
     def __setattr__(self, key, value):
         ldap_mod = None

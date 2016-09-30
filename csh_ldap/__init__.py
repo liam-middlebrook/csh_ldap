@@ -1,6 +1,7 @@
 import ldap
 from csh_ldap.member import CSHMember
 
+
 class CSHLDAP:
     __ldap_uri__ = "ldaps://ldap.csh.rit.edu"
 
@@ -15,17 +16,12 @@ class CSHLDAP:
     def get_member(self, val):
         return CSHMember(self, val)
 
-    # TODO add queue for CSH modlists
-
-    # dict of dn's to pending modlists
-    # clear by flush
-
     def get_con(self):
         return self.__con__
 
     def enqueue_mod(self, dn, mod):
         # mark for update
-        if not dn in self.__pending_mod_dn__:
+        if dn not in self.__pending_mod_dn__:
             self.__pending_mod_dn__.append(dn)
             self.__mod_queue__[dn] = []
 
