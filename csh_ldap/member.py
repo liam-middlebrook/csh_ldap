@@ -40,9 +40,23 @@ class CSHMember:
                 [key])
 
         if as_list:
-            return [v.decode('utf-8') for v in res[0][1][key]]
+            ret = []
+            for val in res[0][1][key]:
+                try:
+                    ret.append(val.decode('utf-8'))
+                except UnicodeDecodeError:
+                    ret.append(val)
+                except KeyError:
+                    continue
+
+            return ret
         else:
-            return res[0][1][key][0].decode('utf-8')
+            try:
+                return res[0][1][key][0].decode('utf-8')
+            except UnicodeDecodeError:
+                return res[0][1][key][0]
+            except KeyError:
+                return None
 
     def __setattr__(self, key, value):
         ldap_mod = None
