@@ -5,6 +5,12 @@ class CSHGroup:
     __ldap_group_ou__ = "ou=Groups,dc=csh,dc=rit,dc=edu"
 
     def __init__(self, lib, search_val):
+        """Object Model for CSH LDAP groups.
+
+        Arguments:
+        lib -- handle to a CSHLDAP instance
+        search_val -- the cn of the LDAP group to bind to
+        """
         self.__dict__['__lib__'] = lib
         self.__dict__['__con__'] = lib.get_con()
 
@@ -15,6 +21,7 @@ class CSHGroup:
                 ['cn'])[0][0]
 
     def get_members(self):
+        """Return all members in the group"""
         res = self.__con__.search_s(
                 self.__dn__,
                 ldap.SCOPE_BASE,
@@ -33,6 +40,11 @@ class CSHGroup:
         return ret
 
     def check_member(self, dn):
+        """Check if a Member is in the bound group.
+
+        Arguments:
+        dn -- the distinguished name of the member's LDAP object
+        """
         res = self.__con__.search_s(
                 self.__dn__,
                 ldap.SCOPE_BASE,
@@ -41,6 +53,11 @@ class CSHGroup:
         return len(res) > 0
 
     def add_member(self, dn):
+        """Add a member to the bound group
+
+        Arguments:
+        dn -- the distinguished name of the member's LDAP object
+        """
         ldap_mod = None
 
         if self.check_member(dn):
@@ -55,6 +72,11 @@ class CSHGroup:
             self.__con__.modify_s(self.__dn__, mod_attrs)
 
     def del_member(self, dn):
+        """Remove a member from the bound group
+
+        Arguments:
+        dn -- the distinguished name of the member's LDAP object
+        """
         ldap_mod = None
 
         if not self.check_member(dn):

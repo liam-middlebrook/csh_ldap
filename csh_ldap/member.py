@@ -5,6 +5,13 @@ class CSHMember:
     __ldap_user_ou__ = "ou=Users,dc=csh,dc=rit,dc=edu"
 
     def __init__(self, lib, search_val, uid):
+        """Object Model for CSH LDAP users.
+
+        Arguments:
+        lib -- handle to a CSHLDAP instance
+        search_val -- the uuid (or uid) of the member to bind to
+        uid -- whether or not search_val is a uid
+        """
         self.__dict__['__lib__'] = lib
         self.__dict__['__con__'] = lib.get_con()
 
@@ -22,12 +29,27 @@ class CSHMember:
                     ['uid'])[0][0]
 
     def get(self, key):
+        """Get an attribute from the bound CSH LDAP member object.
+
+        Arguments:
+        key -- the attribute to get the value of
+        """
         return self.__getattr__(key, as_list=True)
 
     def groups(self):
+        """Get the list of Groups (by dn) that the bound CSH LDAP member object
+        is in.
+        """
         return self.get('memberOf')
 
     def in_group(self, group):
+        """Get whether or not the bound CSH LDAP member object is part of a
+        group.
+
+        Arguments:
+        group -- the common name (or distinguished name) of the group to check
+                 membership for
+        """
         if 'cn' not in group:
             group = "cn=" + group + ",ou=Groups,dc=csh,dc=rit,dc=edu"
         return group in self.groups()
