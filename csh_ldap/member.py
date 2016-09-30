@@ -42,17 +42,22 @@ class CSHMember:
         """
         return self.get('memberOf')
 
-    def in_group(self, group):
+    def in_group(self, group, dn=False):
         """Get whether or not the bound CSH LDAP member object is part of a
         group.
 
         Arguments:
-        group -- the common name (or distinguished name) of the group to check
-                 membership for
+        group -- the CSHGroup object (or distinguished name) of the group to
+                 check membership for
         """
-        if 'cn' not in group:
-            group = "cn=" + group + ",ou=Groups,dc=csh,dc=rit,dc=edu"
-        return group in self.groups()
+        if dn:
+            return group in self.groups()
+        else:
+            return group.check_member(self)
+
+    def get_dn(self):
+        """Get the distinguished name of the bound LDAP object"""
+        return self.__dn__
 
     def __getattr__(self, key, as_list=False):
         res = self.__con__.search_s(
