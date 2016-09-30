@@ -16,10 +16,10 @@ Python 3 ORM for CSH LDAP
 import csh_ldap
 
 # Create an unbatched instance
-instance = CSHLDAP(bind_dn, bind_pw)
+instance = csh_ldap.CSHLDAP(bind_dn, bind_pw)
 
 # Create an batched instance
-instance_batched = CSHLDAP(bind_dn, bind_pw, batch_mods=True)
+instance_batched = csh_ldap.CSHLDAP(bind_dn, bind_pw, batch_mods=True)
 
 # Get member by UUID
 liam = instance.get_member(uuid_of_liam)
