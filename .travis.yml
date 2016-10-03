@@ -1,0 +1,10 @@
+language: python
+python:
+  - "3.3"
+
+install:
+  - "pip install -r requirements.txt"
+  - "pip install -r requirements-test.txt"
+script:
+  - "pep8 csh_ldap"
+  - "pylint csh_ldap"
