@@ -74,34 +74,6 @@ class CSHGroup:
         Keyword arguments:
         dn -- whether or not member is a distinguished name
         """
-        ldap_mod = None
-
-        if dn:
-            if self.check_member(member, dn=True):
-                return
-            mod = (ldap.MOD_ADD, 'member', member.encode('ascii'))
-        else:
-            if self.check_member(member):
-                return
-            mod = (ldap.MOD_ADD, 'member', member.get_dn().encode('ascii'))
-
-        if self.__lib__.__batch_mods__:
-            self.__lib__.enqueue_mod(self.__dn__, mod)
-        else:
-            mod_attrs = [mod]
-            self.__con__.modify_s(self.__dn__, mod_attrs)
-
-    def del_member(self, member, dn=False):
-        """Remove a member from the bound group
-
-        Arguments:
-        member -- the CSHMember object (or distinguished name) of the member
-
-        Keyword arguments:
-        dn -- whether or not member is a distinguished name
-        """
-        ldap_mod = None
-
         if dn:
             if not self.check_member(member, dn=True):
                 return

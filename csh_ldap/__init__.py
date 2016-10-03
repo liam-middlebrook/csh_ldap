@@ -17,7 +17,6 @@ class CSHLDAP:
         self.__mod_queue__ = {}
         self.__pending_mod_dn__ = []
         self.__batch_mods__ = batch_mods
-        pass
 
     def get_member(self, val, uid=False):
         """Get a CSHMember object.
