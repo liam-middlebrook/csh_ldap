@@ -15,18 +15,25 @@ class CSHMember:
         self.__dict__['__lib__'] = lib
         self.__dict__['__con__'] = lib.get_con()
 
+        res = None
+
         if uid:
-            self.__dict__['__dn__'] = self.__con__.search_s(
+            res = self.__con__.search_s(
                     self.__ldap_user_ou__,
                     ldap.SCOPE_SUBTREE,
                     "(uid=%s)" % search_val,
-                    ['entryUUID'])[0][0]
+                    ['entryUUID'])
         else:
-            self.__dict__['__dn__'] = self.__con__.search_s(
+            res = self.__con__.search_s(
                     self.__ldap_user_ou__,
                     ldap.SCOPE_SUBTREE,
                     "(entryUUID=%s)" % search_val,
-                    ['uid'])[0][0]
+                    ['uid'])
+
+        if len(res) > 0:
+            self.__dict__['__dn__'] = res[0][0]
+        else:
+            raise KeyError("Invalid Search Name")
 
     def get(self, key):
         """Get an attribute from the bound CSH LDAP member object.

@@ -15,11 +15,16 @@ class CSHGroup:
         self.__dict__['__lib__'] = lib
         self.__dict__['__con__'] = lib.get_con()
 
-        self.__dict__['__dn__'] = self.__con__.search_s(
+        res = self.__con__.search_s(
                 self.__ldap_group_ou__,
                 ldap.SCOPE_SUBTREE,
                 "(cn=%s)" % search_val,
-                ['cn'])[0][0]
+                ['cn'])
+
+        if len(res) > 0:
+            self.__dict__['__dn__'] = res[0][0]
+        else:
+            raise KeyError("Invalid Search Name")
 
     def get_members(self):
         """Return all members in the group"""
