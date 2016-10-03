@@ -29,6 +29,27 @@ class CSHLDAP:
         """
         return CSHMember(self, val, uid)
 
+    def get_member_ibutton(self, val):
+        """Get a CSHMember object.
+
+        Arguments:
+        val -- the iButton ID of the member
+
+        Returns:
+        None if the iButton supplied does not correspond to a CSH Member
+        """
+        members = self.__con__.search_s(
+            CSHMember.__ldap_user_ou__,
+            ldap.SCOPE_SUBTREE,
+            "(ibutton=%s)" % val,
+            ['entryUUID'])
+        if len(members) > 0:
+            return CSHMember(
+                    self,
+                    members[0][1]['entryUUID'][0].decode('utf-8'),
+                    False)
+        return None
+
     def get_group(self, val):
         """Get a CSHGroup object.
 
