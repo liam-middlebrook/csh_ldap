@@ -28,6 +28,9 @@ liam = instance.get_member(uuid_of_liam)
 # Get member by UID
 liam = instance.get_member(uid_of_liam, uid=True)
 
+# Get member by iButton ID
+liam = instance.get_member_ibutton(ibutton_id)
+
 # Get cn of member
 print(liam.cn)
 
