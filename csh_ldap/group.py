@@ -27,7 +27,7 @@ class CSHGroup:
             raise KeyError("Invalid Search Name")
 
     def get_members(self):
-        """Return all members in the group"""
+        """Return all members in the group as CSHMember objects"""
         res = self.__con__.search_s(
                 self.__dn__,
                 ldap.SCOPE_BASE,
@@ -43,7 +43,9 @@ class CSHGroup:
             except KeyError:
                 continue
 
-        return ret
+        return [CSHMember(self.__lib__,
+                dn.split('=')[1].split(',')[0])
+                for dn in ret]
 
     def check_member(self, member, dn=False):
         """Check if a Member is in the bound group.
