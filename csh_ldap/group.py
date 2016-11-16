@@ -44,7 +44,8 @@ class CSHGroup:
                 continue
 
         return [CSHMember(self.__lib__,
-                dn.split('=')[1].split(',')[0])
+                dn.split('=')[1].split(',')[0],
+                True)
                 for dn in ret]
 
     def check_member(self, member, dn=False):
