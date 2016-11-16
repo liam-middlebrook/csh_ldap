@@ -6,14 +6,18 @@ from csh_ldap.group import CSHGroup
 class CSHLDAP:
     __ldap_uri__ = "ldaps://ldap.csh.rit.edu"
 
-    def __init__(self, bind_dn, bind_pw, batch_mods=False):
+    def __init__(self, bind_dn, bind_pw, batch_mods=False, sasl=False):
         """Handler for bindings to CSH LDAP.
 
         Keyword arguments:
         batch_mods -- whether or not to batch LDAP writes (default False)
+        sasl -- whether or not to bypass bind_dn and bind_pw and use SASL bind
         """
         self.__con__ = ldap.initialize(self.__ldap_uri__)
-        self.__con__.simple_bind_s(bind_dn, bind_pw)
+        if sasl:
+            self.__con__.sasl_non_interactive_bind_s('')
+        else:
+            self.__con__.simple_bind_s(bind_dn, bind_pw)
         self.__mod_queue__ = {}
         self.__pending_mod_dn__ = []
         self.__batch_mods__ = batch_mods
