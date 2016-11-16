@@ -31,6 +31,9 @@ liam = instance.get_member(uid_of_liam, uid=True)
 # Get member by iButton ID
 liam = instance.get_member_ibutton(ibutton_id)
 
+# Get group by cn
+rtp = instance.get_group('rtp')
+
 # Get cn of member
 print(liam.cn)
 
