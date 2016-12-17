@@ -67,6 +67,35 @@ class CSHLDAP:
         """Get the PyLDAP Connection"""
         return self.__con__
 
+    def get_directorship_heads(self, val):
+        """Get the head of a directorship
+
+        Arguments:
+        val -- the cn of the directorship
+        """
+
+        __ldap_directorship_ou__ = "ou=Committees,dc=csh,dc=rit,dc=edu"
+
+        res = self.__con__.search_s(
+                __ldap_directorship_ou__,
+                ldap.SCOPE_SUBTREE,
+                "(cn=%s)" % val,
+                ['head'])
+
+        ret = []
+        for member in res[0][1]['head']:
+            try:
+                ret.append(member.decode('utf-8'))
+            except UnicodeDecodeError:
+                ret.append(member)
+            except KeyError:
+                continue
+
+        return [CSHMember(self,
+                dn.split('=')[1].split(',')[0],
+                True)
+                for dn in ret]
+
     def enqueue_mod(self, dn, mod):
         """Enqueue a LDAP modification.
 
