@@ -94,9 +94,11 @@ class CSHGroup:
 
         if self.__lib__.__batch_mods__:
             self.__lib__.enqueue_mod(self.__dn__, mod)
-        else:
+        elif not self.__lib__.__ro__:
             mod_attrs = [mod]
             self.__con__.modify_s(self.__dn__, mod_attrs)
+        else:
+            print("ADD VALUE member = {} FOR {}".format(mod[2], self.__dn__))
 
     def del_member(self, member, dn=False):
         """Remove a member from the bound group
@@ -119,6 +121,9 @@ class CSHGroup:
 
         if self.__lib__.__batch_mods__:
             self.__lib__.enqueue_mod(self.__dn__, mod)
-        else:
+        elif not self.__lib__.__ro__:
             mod_attrs = [mod]
             self.__con__.modify_s(self.__dn__, mod_attrs)
+        else:
+            print("DELETE VALUE member = {} FOR {}".format(mod[2],
+                                                           self.__dn__))

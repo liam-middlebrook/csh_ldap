@@ -22,6 +22,9 @@ instance = csh_ldap.CSHLDAP(bind_dn, bind_pw)
 # Create an batched instance
 instance_batched = csh_ldap.CSHLDAP(bind_dn, bind_pw, batch_mods=True)
 
+# Create a Read-Only instance that will only echo your changes
+instance_ro = csh_ldap.CSHLDAP(bind_dn, bind_pw, ro=True)
+
 # Get member by UUID
 liam = instance.get_member(uuid_of_liam)
 
