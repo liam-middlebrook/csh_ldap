@@ -6,13 +6,20 @@ from csh_ldap.group import CSHGroup
 class CSHLDAP:
     __ldap_uri__ = "ldaps://ldap.csh.rit.edu"
 
-    def __init__(self, bind_dn, bind_pw, batch_mods=False, sasl=False):
+    def __init__(self, bind_dn, bind_pw, batch_mods=False,
+                 sasl=False, ro=False):
         """Handler for bindings to CSH LDAP.
 
         Keyword arguments:
         batch_mods -- whether or not to batch LDAP writes (default False)
         sasl -- whether or not to bypass bind_dn and bind_pw and use SASL bind
         """
+        if ro:
+            print("########################################\n"
+                  "#                                      #\n"
+                  "#    CSH LDAP IS IN READ ONLY MODE     #\n"
+                  "#                                      #\n"
+                  "########################################")
         self.__con__ = ldap.initialize(self.__ldap_uri__)
         if sasl:
             self.__con__.sasl_non_interactive_bind_s('')
@@ -21,6 +28,7 @@ class CSHLDAP:
         self.__mod_queue__ = {}
         self.__pending_mod_dn__ = []
         self.__batch_mods__ = batch_mods
+        self.__ro__ = ro
 
     def get_member(self, val, uid=False):
         """Get a CSHMember object.
@@ -114,7 +122,20 @@ class CSHLDAP:
         """Flush all pending LDAP modifications."""
         for dn in self.__pending_mod_dn__:
             try:
-                self.__con__.modify_s(dn, self.__mod_queue__[dn])
+                if self.__ro__:
+                    for mod in self.__mod_queue__[dn]:
+                        if mod[0] == ldap.MOD_DELETE:
+                            mod_str = "DELETE"
+                        elif mod[0] == ldap.MOD_ADD:
+                            mod_str = "ADD"
+                        else:
+                            mod_str = "REPLACE"
+                        print("{} VALUE {} = {} FOR {}".format(mod_str,
+                                                               mod[1],
+                                                               mod[2],
+                                                               dn))
+                else:
+                    self.__con__.modify_s(dn, self.__mod_queue__[dn])
             except ldap.TYPE_OR_VALUE_EXISTS:
                 print("Error! Conflicting Batch Modification: %s"
                       % str(self.__mod_queue__[dn]))

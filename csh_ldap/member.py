@@ -115,6 +115,17 @@ class CSHMember:
 
         if self.__lib__.__batch_mods__:
             self.__lib__.enqueue_mod(self.__dn__, mod)
-        else:
+        elif not self.__lib__.__ro__:
             mod_attrs = [mod]
             self.__con__.modify_s(self.__dn__, mod_attrs)
+        else:
+            if ldap_mod == ldap.MOD_DELETE:
+                mod_str = "DELETE"
+            elif ldap_mod == ldap.MOD_ADD:
+                mod_str = "ADD"
+            else:
+                mod_str = "REPLACE"
+            print("{} FIELD {} WITH {} FOR {}".format(mod_str,
+                                                      key,
+                                                      value,
+                                                      self.__dn__))
