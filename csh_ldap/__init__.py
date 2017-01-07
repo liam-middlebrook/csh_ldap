@@ -1,4 +1,5 @@
 import ldap
+from ldap.ldapobject import ReconnectLDAPObject
 from csh_ldap.member import CSHMember
 from csh_ldap.group import CSHGroup
 
@@ -20,7 +21,7 @@ class CSHLDAP:
                   "#    CSH LDAP IS IN READ ONLY MODE     #\n"
                   "#                                      #\n"
                   "########################################")
-        self.__con__ = ldap.initialize(self.__ldap_uri__)
+        self.__con__ = ReconnectLDAPObject(self.__ldap_uri__)
         if sasl:
             self.__con__.sasl_non_interactive_bind_s('')
         else:
