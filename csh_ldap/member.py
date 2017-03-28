@@ -103,6 +103,9 @@ class CSHMember:
 
         if value is None or value == "":
             ldap_mod = ldap.MOD_DELETE
+            if exists[0][1] == {}:
+                # if element doesn't exist STOP
+                return
         elif exists[0][1] == {}:
             ldap_mod = ldap.MOD_ADD
         else:
