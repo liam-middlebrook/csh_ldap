@@ -56,7 +56,7 @@ class CSHLDAP:
             ldap.SCOPE_SUBTREE,
             "(ibutton=%s)" % val,
             ['ipaUniqueID'])
-        if len(members) > 0:
+        if members:
             return CSHMember(
                     self,
                     members[0][1]['ipaUniqueID'][0].decode('utf-8'),

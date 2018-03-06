@@ -22,7 +22,7 @@ class CSHGroup:
                 "(cn=%s)" % search_val,
                 ['cn'])
 
-        if len(res) > 0:
+        if res:
             self.__dict__['__dn__'] = res[0][0]
         else:
             raise KeyError("Invalid Search Name")

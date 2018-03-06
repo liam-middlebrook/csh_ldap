@@ -31,7 +31,7 @@ class CSHMember:
                     "(ipaUniqueID=%s)" % search_val,
                     ['uid'])
 
-        if len(res) > 0:
+        if res > 0:
             self.__dict__['__dn__'] = res[0][0]
         else:
             raise KeyError("Invalid Search Name")
@@ -60,8 +60,7 @@ class CSHMember:
         """
         if dn:
             return group in self.groups()
-        else:
-            return group.check_member(self)
+        return group.check_member(self)
 
     def get_dn(self):
         """Get the distinguished name of the bound LDAP object"""
