@@ -48,4 +48,13 @@ liam.roomNumber = None
 
 # Process batched writes per-dn
 instance_batched.flush_mod()
+
+# Get EBoard Directorship
+# Directorships: ['chairman', 'evaluations', 'financial', 'history', 'imps', 'opcomm', 'research', 'social']
+social = instance.get_directorship_heads('social')
+
+for director in social:
+    # Directorships are always lists, since it can be multiple people.
+    print(director.cn)
+
 ```

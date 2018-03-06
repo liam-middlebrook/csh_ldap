@@ -2,7 +2,8 @@ import ldap
 
 
 class CSHMember:
-    __ldap_user_ou__ = "ou=Users,dc=csh,dc=rit,dc=edu"
+    __ldap_user_ou__ = "cn=users,cn=accounts,dc=csh,dc=rit,dc=edu"
+    __ldap_base_dn__ = "dc=csh,dc=rit,dc=edu"
 
     def __init__(self, lib, search_val, uid):
         """Object Model for CSH LDAP users.
@@ -19,15 +20,15 @@ class CSHMember:
 
         if uid:
             res = self.__con__.search_s(
-                    self.__ldap_user_ou__,
+                    self.__ldap_base_dn__,
                     ldap.SCOPE_SUBTREE,
                     "(uid=%s)" % search_val,
-                    ['entryUUID'])
+                    ['ipaUniqueID'])
         else:
             res = self.__con__.search_s(
-                    self.__ldap_user_ou__,
+                    self.__ldap_base_dn__,
                     ldap.SCOPE_SUBTREE,
-                    "(entryUUID=%s)" % search_val,
+                    "(ipaUniqueID=%s)" % search_val,
                     ['uid'])
 
         if len(res) > 0:
@@ -47,7 +48,7 @@ class CSHMember:
         """Get the list of Groups (by dn) that the bound CSH LDAP member object
         is in.
         """
-        return self.get('memberOf')
+        return self.get('memberof') + self.get('memberofindirect')
 
     def in_group(self, group, dn=False):
         """Get whether or not the bound CSH LDAP member object is part of a
