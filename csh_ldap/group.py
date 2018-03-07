@@ -3,7 +3,8 @@ from csh_ldap.member import CSHMember
 
 
 class CSHGroup:
-    __ldap_group_ou__ = "ou=Groups,dc=csh,dc=rit,dc=edu"
+    __ldap_group_ou__ = "cn=groups,cn=accounts,dc=csh,dc=rit,dc=edu"
+    __ldap_base_dn__ = "dc=csh,dc=rit,dc=edu"
 
     def __init__(self, lib, search_val):
         """Object Model for CSH LDAP groups.
@@ -21,7 +22,7 @@ class CSHGroup:
                 "(cn=%s)" % search_val,
                 ['cn'])
 
-        if len(res) > 0:
+        if res:
             self.__dict__['__dn__'] = res[0][0]
         else:
             raise KeyError("Invalid Search Name")
@@ -29,24 +30,15 @@ class CSHGroup:
     def get_members(self):
         """Return all members in the group as CSHMember objects"""
         res = self.__con__.search_s(
-                self.__dn__,
-                ldap.SCOPE_BASE,
-                "(objectClass=*)",
-                ['member'])
-
-        ret = []
-        for val in res[0][1]['member']:
-            try:
-                ret.append(val.decode('utf-8'))
-            except UnicodeDecodeError:
-                ret.append(val)
-            except KeyError:
-                continue
+                self.__ldap_base_dn__,
+                ldap.SCOPE_SUBTREE,
+                "(memberof=%s)" % self.__dn__,
+                ['uid'])
 
         return [CSHMember(self.__lib__,
-                dn.split('=')[1].split(',')[0],
-                True)
-                for dn in ret]
+                result[1]['uid'][0],
+                uid=True)
+                for result in res]
 
     def check_member(self, member, dn=False):
         """Check if a Member is in the bound group.
@@ -64,13 +56,13 @@ class CSHGroup:
                     self.__dn__,
                     ldap.SCOPE_BASE,
                     "(member=%s)" % dn,
-                    ['entryUUID'])
+                    ['ipaUniqueID'])
         else:
             res = self.__con__.search_s(
                     self.__dn__,
                     ldap.SCOPE_BASE,
                     "(member=%s)" % member.get_dn(),
-                    ['entryUUID'])
+                    ['ipaUniqueID'])
         return len(res) > 0
 
     def add_member(self, member, dn=False):

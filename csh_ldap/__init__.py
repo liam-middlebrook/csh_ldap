@@ -5,7 +5,7 @@ from csh_ldap.group import CSHGroup
 
 
 class CSHLDAP:
-    __ldap_uri__ = "ldaps://ldap.csh.rit.edu"
+    __ldap_uri__ = "ldaps://csh-ds01.csh.rit.edu"
 
     def __init__(self, bind_dn, bind_pw, batch_mods=False,
                  sasl=False, ro=False):
@@ -55,11 +55,11 @@ class CSHLDAP:
             CSHMember.__ldap_user_ou__,
             ldap.SCOPE_SUBTREE,
             "(ibutton=%s)" % val,
-            ['entryUUID'])
-        if len(members) > 0:
+            ['ipaUniqueID'])
+        if members:
             return CSHMember(
                     self,
-                    members[0][1]['entryUUID'][0].decode('utf-8'),
+                    members[0][1]['ipaUniqueID'][0].decode('utf-8'),
                     False)
         return None
 
@@ -83,16 +83,16 @@ class CSHLDAP:
         val -- the cn of the directorship
         """
 
-        __ldap_directorship_ou__ = "ou=Committees,dc=csh,dc=rit,dc=edu"
+        __ldap_group_ou__ = "cn=groups,cn=accounts,dc=csh,dc=rit,dc=edu"
 
         res = self.__con__.search_s(
-                __ldap_directorship_ou__,
+                __ldap_group_ou__,
                 ldap.SCOPE_SUBTREE,
-                "(cn=%s)" % val,
-                ['head'])
+                "(cn=eboard-%s)" % val,
+                ['member'])
 
         ret = []
-        for member in res[0][1]['head']:
+        for member in res[0][1]['member']:
             try:
                 ret.append(member.decode('utf-8'))
             except UnicodeDecodeError:
