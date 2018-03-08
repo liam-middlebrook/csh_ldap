@@ -31,7 +31,7 @@ class CSHMember:
                     "(ipaUniqueID=%s)" % search_val,
                     ['uid'])
 
-        if res > 0:
+        if res:
             self.__dict__['__dn__'] = res[0][0]
         else:
             raise KeyError("Invalid Search Name")
