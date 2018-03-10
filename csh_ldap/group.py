@@ -35,10 +35,20 @@ class CSHGroup:
                 "(memberof=%s)" % self.__dn__,
                 ['uid'])
 
+        ret = []
+        for val in res:
+            val = val[1]['uid'][0]
+            try:
+                ret.append(val.decode('utf-8'))
+            except UnicodeDecodeError:
+                ret.append(val)
+            except KeyError:
+                continue
+
         return [CSHMember(self.__lib__,
-                result[1]['uid'][0],
+                result,
                 uid=True)
-                for result in res]
+                for result in ret]
 
     def check_member(self, member, dn=False):
         """Check if a Member is in the bound group.
