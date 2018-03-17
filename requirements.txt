@@ -1,1 +1,1 @@
-pyldap
+pyldap==2.4.45
