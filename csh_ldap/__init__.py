@@ -1,11 +1,14 @@
 import ldap
 from ldap.ldapobject import ReconnectLDAPObject
+
+import srvlookup
+
 from csh_ldap.member import CSHMember
 from csh_ldap.group import CSHGroup
 
 
 class CSHLDAP:
-    __ldap_uri__ = "ldaps://csh-ds01.csh.rit.edu"
+    __domain__ = "csh.rit.edu"
 
     def __init__(self, bind_dn, bind_pw, batch_mods=False,
                  sasl=False, ro=False):
@@ -21,7 +24,11 @@ class CSHLDAP:
                   "#    CSH LDAP IS IN READ ONLY MODE     #\n"
                   "#                                      #\n"
                   "########################################")
-        self.__con__ = ReconnectLDAPObject(self.__ldap_uri__)
+        ldap_srvs = srvlookup.lookup("ldap", "tcp", self.__domain__)
+        ldap_uris = ""
+        for uri in ldap_srvs:
+            ldap_uris += "ldaps://"+uri.hostname+","
+        self.__con__ = ReconnectLDAPObject(ldap_uris)
         if sasl:
             self.__con__.sasl_non_interactive_bind_s('')
         else:
