@@ -1,2 +1,2 @@
-pep8
-pylint
+pycodestyle==2.4.0
+pylint==1.8.4
