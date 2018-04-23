@@ -32,7 +32,14 @@ class CSHMember:
                     ['uid'])
 
         if res:
-            self.__dict__['__dn__'] = res[0][0]
+            found = False
+            for val in res:
+                if 'ipaUniqueID' in val[1]:
+                    found = True
+                    self.__dict__['__dn__'] = val[0]
+            if not found:
+                # in case there are no results that have ipaUniqueID
+                raise KeyError("Invalid Search Name")
         else:
             raise KeyError("Invalid Search Name")
 
