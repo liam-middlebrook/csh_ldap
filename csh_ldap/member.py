@@ -55,7 +55,17 @@ class CSHMember:
         """Get the list of Groups (by dn) that the bound CSH LDAP member object
         is in.
         """
-        return self.get('memberof') + self.get('memberofindirect')
+        member_of = self.get('memberof')
+        member_of_indirect = []
+        try:
+            member_of_indirect = self.get('memberofindirect')
+        except KeyError:
+            # XXX[ljm] I don't remember if python would do the assignment above
+            # so this is just to be extra safe
+            member_of_indirect = []
+            print("%s: memberofindirect attribute does not exist" % (self.uid))
+
+        return member_of + member_of_indirect
 
     def in_group(self, group, dn=False):
         """Get whether or not the bound CSH LDAP member object is part of a
