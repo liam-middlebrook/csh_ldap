@@ -17,6 +17,7 @@ class CSHLDAP:
         Keyword arguments:
         batch_mods -- whether or not to batch LDAP writes (default False)
         sasl -- whether or not to bypass bind_dn and bind_pw and use SASL bind
+        ro -- whether or not CSH LDAP is in read only mode (default False)
         """
         if ro:
             print("########################################\n"
