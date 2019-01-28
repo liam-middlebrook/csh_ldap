@@ -71,6 +71,27 @@ class CSHLDAP:
                     False)
         return None
 
+    def get_member_slackuid(self, slack):
+        """Get a CSHMember object.
+
+        Arguments:
+        slack -- the Slack UID of the member
+
+        Returns:
+        None if the Slack UID provided does not correspond to a CSH Member
+        """
+        members = self.__con__.search_s(
+            CSHMember.__ldap_user_ou__,
+            ldap.SCOPE_SUBTREE,
+            "(slackuid=%s)" % slack,
+            ['ipaUniqueID'])
+        if members:
+            return CSHMember(
+                    self,
+                    members[0][1]['ipaUniqueID'][0].decode('utf-8'),
+                    False)
+        return None
+
     def get_group(self, val):
         """Get a CSHGroup object.
 
