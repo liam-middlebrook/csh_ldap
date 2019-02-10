@@ -34,6 +34,9 @@ liam = instance.get_member(uid_of_liam, uid=True)
 # Get member by iButton ID
 liam = instance.get_member_ibutton(ibutton_id)
 
+# Get member by Slack UID
+liam = instance.get_member_slackuid(slack_uid)
+
 # Get group by cn
 rtp = instance.get_group('rtp')
 
