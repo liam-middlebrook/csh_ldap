@@ -36,6 +36,21 @@ class CSHMember:
         else:
             raise KeyError("Invalid Search Name")
 
+    def __eq__(self, other):
+        if isinstance(other, CSHMember):
+            return self.__dn__ == other.__dn__
+        return False
+
+    def __hash__(self):
+        """Generate a unique hash value for the bound CSH LDAP member object.
+        """
+        return hash(self.__dn__)
+
+    def __repr__(self):
+        """Generate a str representation of the bound CSH LDAP member object.
+        """
+        return "CSH Member(dn: %s)" % self.__dn__
+
     def get(self, key):
         """Get an attribute from the bound CSH LDAP member object.
 
@@ -90,13 +105,12 @@ class CSHMember:
                     continue
 
             return ret
-        else:
-            try:
-                return res[0][1][key][0].decode('utf-8')
-            except UnicodeDecodeError:
-                return res[0][1][key][0]
-            except KeyError:
-                return None
+        try:
+            return res[0][1][key][0].decode('utf-8')
+        except UnicodeDecodeError:
+            return res[0][1][key][0]
+        except KeyError:
+            return None
 
     def __setattr__(self, key, value):
         ldap_mod = None
