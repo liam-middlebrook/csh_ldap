@@ -1,10 +1,41 @@
+from functools import wraps
 import ldap
 from ldap.ldapobject import ReconnectLDAPObject
-
 import srvlookup
-
 from csh_ldap.member import CSHMember
 from csh_ldap.group import CSHGroup
+
+MAX_RECONNECTS = 3
+
+
+def reconnect_on_fail(method):
+    @wraps(method)
+    def wrapper(*method_args, **method_kwargs):
+        max_reconnects = MAX_RECONNECTS
+        self = method_args[0]
+        while max_reconnects:
+            try:
+                result = method(*method_args, **method_kwargs)
+                return result
+            except:
+                ldap_srvs = srvlookup.lookup("ldap", "tcp", self.__domain__)
+                self.ldap_uris = ''.join([f'ldaps://{uri.hostname},' for uri in ldap_srvs])
+                self.ldap_uris = self.ldap_uris.split(',')[2:][:-1]
+                for uri in self.ldap_uris:
+                    try:
+
+                        self.__con__.reconnect(uri)
+                        self.server_uri = uri
+                        result = method(*method_args, **method_kwargs)
+                        return result
+                    except (ldap.SERVER_DOWN, ldap.TIMEOUT):
+                        continue
+
+                max_reconnects -= 1
+                if max_reconnects == 0:
+                    raise
+
+    return wrapper
 
 
 class CSHLDAP:
@@ -26,10 +57,15 @@ class CSHLDAP:
                   "#                                      #\n"
                   "########################################")
         ldap_srvs = srvlookup.lookup("ldap", "tcp", self.__domain__)
-        ldap_uris = ""
-        for uri in ldap_srvs:
-            ldap_uris += "ldaps://"+uri.hostname+","
-        self.__con__ = ReconnectLDAPObject(ldap_uris)
+        self.ldap_uris = ''.join([f'ldaps://{uri.hostname},' for uri in ldap_srvs])
+        self.server_uri = None
+
+        for uri in self.ldap_uris.split(',')[:-1]:
+            try:
+                self.__con__ = ReconnectLDAPObject(uri)
+                self.server_uri = uri
+            except (ldap.SERVER_DOWN, ldap.TIMEOUT):
+                continue
         if sasl:
             self.__con__.sasl_non_interactive_bind_s('')
         else:
@@ -39,6 +75,7 @@ class CSHLDAP:
         self.__batch_mods__ = batch_mods
         self.__ro__ = ro
 
+    @reconnect_on_fail
     def get_member(self, val, uid=False):
         """Get a CSHMember object.
 
@@ -50,6 +87,7 @@ class CSHLDAP:
         """
         return CSHMember(self, val, uid)
 
+    @reconnect_on_fail
     def get_member_ibutton(self, val):
         """Get a CSHMember object.
 
@@ -66,11 +104,12 @@ class CSHLDAP:
             ['ipaUniqueID'])
         if members:
             return CSHMember(
-                    self,
-                    members[0][1]['ipaUniqueID'][0].decode('utf-8'),
-                    False)
+                self,
+                members[0][1]['ipaUniqueID'][0].decode('utf-8'),
+                False)
         return None
 
+    @reconnect_on_fail
     def get_member_slackuid(self, slack):
         """Get a CSHMember object.
 
@@ -87,11 +126,12 @@ class CSHLDAP:
             ['ipaUniqueID'])
         if members:
             return CSHMember(
-                    self,
-                    members[0][1]['ipaUniqueID'][0].decode('utf-8'),
-                    False)
+                self,
+                members[0][1]['ipaUniqueID'][0].decode('utf-8'),
+                False)
         return None
 
+    @reconnect_on_fail
     def get_group(self, val):
         """Get a CSHGroup object.
 
@@ -101,10 +141,12 @@ class CSHLDAP:
         """
         return CSHGroup(self, val)
 
+    @reconnect_on_fail
     def get_con(self):
         """Get the PyLDAP Connection"""
         return self.__con__
 
+    @reconnect_on_fail
     def get_directorship_heads(self, val):
         """Get the head of a directorship
 
@@ -115,10 +157,10 @@ class CSHLDAP:
         __ldap_group_ou__ = "cn=groups,cn=accounts,dc=csh,dc=rit,dc=edu"
 
         res = self.__con__.search_s(
-                __ldap_group_ou__,
-                ldap.SCOPE_SUBTREE,
-                "(cn=eboard-%s)" % val,
-                ['member'])
+            __ldap_group_ou__,
+            ldap.SCOPE_SUBTREE,
+            "(cn=eboard-%s)" % val,
+            ['member'])
 
         ret = []
         for member in res[0][1]['member']:
@@ -130,10 +172,11 @@ class CSHLDAP:
                 continue
 
         return [CSHMember(self,
-                dn.split('=')[1].split(',')[0],
-                True)
+                          dn.split('=')[1].split(',')[0],
+                          True)
                 for dn in ret]
 
+    @reconnect_on_fail
     def enqueue_mod(self, dn, mod):
         """Enqueue a LDAP modification.
 
@@ -148,6 +191,7 @@ class CSHLDAP:
 
         self.__mod_queue__[dn].append(mod)
 
+    @reconnect_on_fail
     def flush_mod(self):
         """Flush all pending LDAP modifications."""
         for dn in self.__pending_mod_dn__:
