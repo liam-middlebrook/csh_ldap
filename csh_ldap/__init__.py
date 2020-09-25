@@ -26,9 +26,7 @@ class CSHLDAP:
                   "#                                      #\n"
                   "########################################")
         ldap_srvs = srvlookup.lookup("ldap", "tcp", self.__domain__)
-        ldap_uris = ""
-        for uri in ldap_srvs:
-            ldap_uris += "ldaps://"+uri.hostname+","
+        ldap_uris = ''.join([f'ldaps://{uri.hostname},' for uri in ldap_srvs])
         self.__con__ = ReconnectLDAPObject(ldap_uris)
         if sasl:
             self.__con__.sasl_non_interactive_bind_s('')
