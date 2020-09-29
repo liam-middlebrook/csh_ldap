@@ -10,26 +10,46 @@ MAX_RECONNECTS = 3
 
 
 def reconnect_on_fail(method):
+    """
+    Decorator for CSHLDAP operations that attempts to reconnect and recall a
+    method on a failed call.
+
+    :param method: Method to call
+    :return: wrapper function
+    """
+
     @wraps(method)
     def wrapper(*method_args, **method_kwargs):
+        """
+        Wrapper for method, calls method and returns the result if successful,
+         otherwise tries reconnecting.
+
+        :param method_args: method's arguments
+        :param method_kwargs: method's keyword arguments
+        :return: result of method call
+        """
         max_reconnects = MAX_RECONNECTS
-        self = method_args[0]
+        ldap_obj = method_args[0] if isinstance(method_args[0], CSHLDAP) else\
+            method_args[0].__lib__
         while max_reconnects:
             try:
                 result = method(*method_args, **method_kwargs)
                 return result
-            except:
-                ldap_srvs = srvlookup.lookup("ldap", "tcp", self.__domain__)
-                self.ldap_uris = [f'ldaps://{uri.hostname}' for uri in ldap_srvs]
-                for uri in self.ldap_uris:
+            #   pylint: disable=broad-except
+            except Exception:
+                ldap_srvs = srvlookup.lookup(
+                    "ldap", "tcp", ldap_obj.__domain__)
+                ldap_obj.ldap_uris = ['ldaps://' + uri.hostname
+                                      for uri in ldap_srvs]
+
+                for uri in ldap_obj.ldap_uris:
                     try:
-                        self.__con__.reconnect(uri)
+                        ldap_obj.__con__.reconnect(uri)
+                        ldap_obj.server_uri = uri
                         result = method(*method_args, **method_kwargs)
-                        self.server_uri = uri
                         return result
                     except (ldap.SERVER_DOWN, ldap.TIMEOUT):
                         continue
-
                 max_reconnects -= 1
                 if max_reconnects == 0:
                     raise
@@ -40,6 +60,7 @@ def reconnect_on_fail(method):
 class CSHLDAP:
     __domain__ = "csh.rit.edu"
 
+    @reconnect_on_fail
     def __init__(self, bind_dn, bind_pw, batch_mods=False,
                  sasl=False, ro=False):
         """Handler for bindings to CSH LDAP.
@@ -56,7 +77,7 @@ class CSHLDAP:
                   "#                                      #\n"
                   "########################################")
         ldap_srvs = srvlookup.lookup("ldap", "tcp", self.__domain__)
-        self.ldap_uris = [f'ldaps://{uri.hostname}' for uri in ldap_srvs]
+        self.ldap_uris = ['ldaps://' + uri.hostname for uri in ldap_srvs]
         self.server_uri = None
         self.__con__ = None
         for uri in self.ldap_uris:
@@ -144,7 +165,6 @@ class CSHLDAP:
         """
         return CSHGroup(self, val)
 
-    @reconnect_on_fail
     def get_con(self):
         """Get the PyLDAP Connection"""
         return self.__con__
@@ -179,7 +199,6 @@ class CSHLDAP:
                           True)
                 for dn in ret]
 
-    @reconnect_on_fail
     def enqueue_mod(self, dn, mod):
         """Enqueue a LDAP modification.
 

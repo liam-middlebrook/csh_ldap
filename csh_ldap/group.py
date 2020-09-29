@@ -1,11 +1,13 @@
 import ldap
 from csh_ldap.member import CSHMember
+from . import reconnect_on_fail
 
 
 class CSHGroup:
     __ldap_group_ou__ = "cn=groups,cn=accounts,dc=csh,dc=rit,dc=edu"
     __ldap_base_dn__ = "dc=csh,dc=rit,dc=edu"
 
+    @reconnect_on_fail
     def __init__(self, lib, search_val):
         """Object Model for CSH LDAP groups.
 
@@ -17,23 +19,24 @@ class CSHGroup:
         self.__dict__['__con__'] = lib.get_con()
 
         res = self.__con__.search_s(
-                self.__ldap_group_ou__,
-                ldap.SCOPE_SUBTREE,
-                "(cn=%s)" % search_val,
-                ['cn'])
+            self.__ldap_group_ou__,
+            ldap.SCOPE_SUBTREE,
+            "(cn=%s)" % search_val,
+            ['cn'])
 
         if res:
             self.__dict__['__dn__'] = res[0][0]
         else:
             raise KeyError("Invalid Search Name")
 
+    @reconnect_on_fail
     def get_members(self):
         """Return all members in the group as CSHMember objects"""
         res = self.__con__.search_s(
-                self.__ldap_base_dn__,
-                ldap.SCOPE_SUBTREE,
-                "(memberof=%s)" % self.__dn__,
-                ['uid'])
+            self.__ldap_base_dn__,
+            ldap.SCOPE_SUBTREE,
+            "(memberof=%s)" % self.__dn__,
+            ['uid'])
 
         ret = []
         for val in res:
@@ -46,10 +49,11 @@ class CSHGroup:
                 continue
 
         return [CSHMember(self.__lib__,
-                result,
-                uid=True)
+                          result,
+                          uid=True)
                 for result in ret]
 
+    @reconnect_on_fail
     def check_member(self, member, dn=False):
         """Check if a Member is in the bound group.
 
@@ -63,18 +67,19 @@ class CSHGroup:
 
         if dn:
             res = self.__con__.search_s(
-                    self.__dn__,
-                    ldap.SCOPE_BASE,
-                    "(member=%s)" % dn,
-                    ['ipaUniqueID'])
+                self.__dn__,
+                ldap.SCOPE_BASE,
+                "(member=%s)" % dn,
+                ['ipaUniqueID'])
         else:
             res = self.__con__.search_s(
-                    self.__dn__,
-                    ldap.SCOPE_BASE,
-                    "(member=%s)" % member.get_dn(),
-                    ['ipaUniqueID'])
+                self.__dn__,
+                ldap.SCOPE_BASE,
+                "(member=%s)" % member.get_dn(),
+                ['ipaUniqueID'])
         return len(res) > 0
 
+    @reconnect_on_fail
     def add_member(self, member, dn=False):
         """Add a member to the bound group
 
@@ -102,6 +107,7 @@ class CSHGroup:
         else:
             print("ADD VALUE member = {} FOR {}".format(mod[2], self.__dn__))
 
+    @reconnect_on_fail
     def del_member(self, member, dn=False):
         """Remove a member from the bound group
 
