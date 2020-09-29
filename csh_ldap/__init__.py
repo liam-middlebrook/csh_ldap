@@ -1,4 +1,5 @@
 from functools import wraps
+from enum import Enum
 import ldap
 from ldap.ldapobject import ReconnectLDAPObject
 import srvlookup
@@ -19,14 +20,12 @@ def reconnect_on_fail(method):
                 return result
             except:
                 ldap_srvs = srvlookup.lookup("ldap", "tcp", self.__domain__)
-                self.ldap_uris = ''.join([f'ldaps://{uri.hostname},' for uri in ldap_srvs])
-                self.ldap_uris = self.ldap_uris.split(',')[2:][:-1]
+                self.ldap_uris = [f'ldaps://{uri.hostname}' for uri in ldap_srvs]
                 for uri in self.ldap_uris:
                     try:
-
                         self.__con__.reconnect(uri)
-                        self.server_uri = uri
                         result = method(*method_args, **method_kwargs)
+                        self.server_uri = uri
                         return result
                     except (ldap.SERVER_DOWN, ldap.TIMEOUT):
                         continue
@@ -57,15 +56,19 @@ class CSHLDAP:
                   "#                                      #\n"
                   "########################################")
         ldap_srvs = srvlookup.lookup("ldap", "tcp", self.__domain__)
-        self.ldap_uris = ''.join([f'ldaps://{uri.hostname},' for uri in ldap_srvs])
+        self.ldap_uris = [f'ldaps://{uri.hostname}' for uri in ldap_srvs]
         self.server_uri = None
-
-        for uri in self.ldap_uris.split(',')[:-1]:
+        self.__con__ = None
+        for uri in self.ldap_uris:
             try:
                 self.__con__ = ReconnectLDAPObject(uri)
                 self.server_uri = uri
             except (ldap.SERVER_DOWN, ldap.TIMEOUT):
                 continue
+
+        if self.__con__ is None:
+            raise ldap.SERVER_DOWN
+
         if sasl:
             self.__con__.sasl_non_interactive_bind_s('')
         else:
