@@ -35,8 +35,7 @@ def reconnect_on_fail(method):
             try:
                 result = method(*method_args, **method_kwargs)
                 return result
-            #   pylint: disable=broad-except
-            except Exception:
+            except (ldap.SERVER_DOWN, ldap.TIMEOUT):
                 ldap_srvs = srvlookup.lookup(
                     "ldap", "tcp", ldap_obj.__domain__)
                 ldap_obj.ldap_uris = ['ldaps://' + uri.hostname
