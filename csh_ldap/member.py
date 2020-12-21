@@ -1,10 +1,12 @@
 import ldap
+from . import reconnect_on_fail
 
 
 class CSHMember:
     __ldap_user_ou__ = "cn=users,cn=accounts,dc=csh,dc=rit,dc=edu"
     __ldap_group_ou__ = "cn=groups,cn=accounts,dc=csh,dc=rit,dc=edu"
 
+    @reconnect_on_fail
     def __init__(self, lib, search_val, uid):
         """Object Model for CSH LDAP users.
 
@@ -20,16 +22,16 @@ class CSHMember:
 
         if uid:
             res = self.__con__.search_s(
-                    self.__ldap_user_ou__,
-                    ldap.SCOPE_SUBTREE,
-                    "(uid=%s)" % search_val,
-                    ['ipaUniqueID'])
+                self.__ldap_user_ou__,
+                ldap.SCOPE_SUBTREE,
+                "(uid=%s)" % search_val,
+                ['ipaUniqueID'])
         else:
             res = self.__con__.search_s(
-                    self.__ldap_user_ou__,
-                    ldap.SCOPE_SUBTREE,
-                    "(ipaUniqueID=%s)" % search_val,
-                    ['uid'])
+                self.__ldap_user_ou__,
+                ldap.SCOPE_SUBTREE,
+                "(ipaUniqueID=%s)" % search_val,
+                ['uid'])
 
         if res:
             self.__dict__['__dn__'] = res[0][0]
@@ -59,6 +61,7 @@ class CSHMember:
         """
         return self.__getattr__(key, as_list=True)
 
+    @reconnect_on_fail
     def groups(self):
         """Get the list of Groups (by dn) that the bound CSH LDAP member object
         is in.
@@ -87,12 +90,13 @@ class CSHMember:
         """Get the distinguished name of the bound LDAP object"""
         return self.__dn__
 
+    @reconnect_on_fail
     def __getattr__(self, key, as_list=False):
         res = self.__con__.search_s(
-                self.__dn__,
-                ldap.SCOPE_BASE,
-                "(objectClass=*)",
-                [key])
+            self.__dn__,
+            ldap.SCOPE_BASE,
+            "(objectClass=*)",
+            [key])
 
         if as_list:
             ret = []
@@ -112,14 +116,15 @@ class CSHMember:
         except KeyError:
             return None
 
+    @reconnect_on_fail
     def __setattr__(self, key, value):
         ldap_mod = None
 
         exists = self.__con__.search_s(
-                self.__dn__,
-                ldap.SCOPE_BASE,
-                "(objectClass=*)",
-                [key])
+            self.__dn__,
+            ldap.SCOPE_BASE,
+            "(objectClass=*)",
+            [key])
 
         if value is None or value == "":
             ldap_mod = ldap.MOD_DELETE
