@@ -1,6 +1,6 @@
 import ldap
 from csh_ldap.member import CSHMember
-from . import reconnect_on_fail
+from csh_ldap.utility import reconnect_on_fail
 
 
 class CSHGroup:
