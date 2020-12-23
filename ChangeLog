@@ -1,9 +1,16 @@
 CHANGES
 =======
 
+2.3.1
+-----
+
+* Fix infinite recursion in reconnect\_on\_fail
+* Circular import hotfix
+
 2.3.0
 -----
 
+* Build updates
 * Version bump to 2.3.0
 * Specify exceptions for wrapper method try-except
 * Add reconnect\_on\_fail decorator
